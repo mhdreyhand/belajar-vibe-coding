@@ -105,4 +105,24 @@ export const usersService = {
 
     return { data: token };
   },
+
+  async getCurrentUser(token: string) {
+    const [result] = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        created_at: users.createdAt,
+      })
+      .from(sessions)
+      .innerJoin(users, eq(sessions.userId, users.id))
+      .where(eq(sessions.token, token))
+      .limit(1);
+
+    if (!result) {
+      throw new AuthError("Unauthorized", 401);
+    }
+
+    return { data: result };
+  },
 };

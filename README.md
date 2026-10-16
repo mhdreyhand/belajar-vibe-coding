@@ -117,3 +117,24 @@ cp .env.example .env
       "error": "Email atau password salah"
     }
     ```
+
+- `GET /api/users/current`: Mengambil profil user yang sedang login menggunakan session token.
+  - **Headers**:
+    - `Authorization: Bearer <token>`
+  - **Response Success (200)**:
+    ```json
+    {
+      "data": {
+        "id": 1,
+        "name": "Reyhan",
+        "email": "reyhan@email.com",
+        "created_at": "2026-10-16T14:45:00.000Z"
+      }
+    }
+    ```
+  - **Response Error (401)**:
+    ```json
+    {
+      "error": "Unauthorized"
+    }
+    ```
