@@ -2,7 +2,7 @@ import { Elysia } from "elysia";
 import { sql } from "drizzle-orm";
 import { db } from "../db";
 
-export const healthRoutes = new Elysia({ prefix: "/health" }).get("/", async () => {
+export const healthRoute = new Elysia({ prefix: "/health" }).get("/", async () => {
   let dbStatus = "unknown";
   let dbError: string | null = null;
 
