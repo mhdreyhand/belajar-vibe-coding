@@ -21,7 +21,8 @@ Backend starter project yang dibangun menggunakan runtime Bun, framework ElysiaJ
 │   ├── db/
 │   │   ├── schema/       # Definisi skema tabel database Drizzle
 │   │   │   ├── index.ts
-│   │   │   └── users.ts
+│   │   │   ├── users.ts
+│   │   │   └── sessions.ts
 │   │   └── index.ts      # Koneksi singleton client database MySQL
 │   ├── routes/           # Modul route Elysia (*-route.ts)
 │   │   ├── health-route.ts
@@ -68,8 +69,12 @@ cp .env.example .env
 ---
 
 ## 🔌 API Endpoints
+
+### 1. General & Health
 - `GET /`: Status umum server dan info welcome.
 - `GET /health`: Pemeriksaan kesehatan server dan konektivitas ke database MySQL.
+
+### 2. Users & Authentication
 - `POST /api/users`: Registrasi user baru dengan password yang di-hash bcrypt.
   - **Body (JSON)**:
     ```json
@@ -89,5 +94,26 @@ cp .env.example .env
     ```json
     {
       "error": "Email sudah terdaftar"
+    }
+    ```
+
+- `POST /api/users/login`: Login pengguna dan pembuatan sesi token UUID.
+  - **Body (JSON)**:
+    ```json
+    {
+      "email": "reyhan@email.com",
+      "password": "rahasia"
+    }
+    ```
+  - **Response Success (200)**:
+    ```json
+    {
+      "data": "550e8400-e29b-41d4-a716-446655440000"
+    }
+    ```
+  - **Response Error (400)**:
+    ```json
+    {
+      "error": "Email atau password salah"
     }
     ```

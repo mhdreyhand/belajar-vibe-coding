@@ -15,6 +15,13 @@
       "when": 1792160668807,
       "tag": "0001_stale_wraith",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1792161910865,
+      "tag": "0002_flippant_joseph",
+      "breakpoints": true
     }
   ]
 }
