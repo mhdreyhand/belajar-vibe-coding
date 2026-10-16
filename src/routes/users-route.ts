@@ -48,4 +48,30 @@ export const usersRoute = new Elysia({ prefix: "/users" })
         password: t.String({ minLength: 1 }),
       }),
     }
-  );
+  )
+  .get("/current", async ({ headers, set }) => {
+    const authHeader = headers["authorization"];
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      set.status = 401;
+      return { error: "Unauthorized" };
+    }
+
+    const token = authHeader.slice(7).trim();
+    if (!token) {
+      set.status = 401;
+      return { error: "Unauthorized" };
+    }
+
+    try {
+      const result = await usersService.getCurrentUser(token);
+      set.status = 200;
+      return result;
+    } catch (error: any) {
+      if (error instanceof AuthError) {
+        set.status = error.status;
+        return { error: error.message };
+      }
+      set.status = 500;
+      return { error: error?.message || "Terjadi kesalahan internal server" };
+    }
+  });

@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 
 describe("Elysia App API", () => {
   const testEmail = "reyhan@email.com";
+  let validToken = "";
 
   afterAll(async () => {
     // Bersihkan test data setelah pengujian selesai
@@ -100,20 +101,20 @@ describe("Elysia App API", () => {
     const data = (await response.json()) as Record<string, any>;
     expect(typeof data.data).toBe("string");
 
-    const token = data.data as string;
+    validToken = data.data as string;
     // Validasi token berformat UUID
     expect(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token)
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(validToken)
     ).toBe(true);
 
     // Verifikasi token tersimpan di tabel sessions
     const [savedSession] = await db
       .select()
       .from(sessions)
-      .where(eq(sessions.token, token));
+      .where(eq(sessions.token, validToken));
 
     expect(savedSession).toBeDefined();
-    expect(savedSession!.token).toBe(token);
+    expect(savedSession!.token).toBe(validToken);
   });
 
   it("POST /api/users/login returns error when password is wrong", async () => {
@@ -148,5 +149,52 @@ describe("Elysia App API", () => {
     expect(response.status).toBe(400);
     const data = (await response.json()) as Record<string, any>;
     expect(data).toEqual({ error: "Email atau password salah" });
+  });
+
+  it("GET /api/users/current returns current user profile when authenticated", async () => {
+    const response = await app.handle(
+      new Request("http://localhost:3000/api/users/current", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${validToken}`,
+        },
+      })
+    );
+
+    expect(response.status).toBe(200);
+    const data = (await response.json()) as Record<string, any>;
+    expect(data.data).toBeDefined();
+    expect(data.data.name).toBe("Reyhan");
+    expect(data.data.email).toBe(testEmail);
+    expect(data.data.id).toBeDefined();
+    expect(data.data.created_at).toBeDefined();
+    expect(data.data.password).toBeUndefined();
+  });
+
+  it("GET /api/users/current returns error 401 when Authorization header is missing", async () => {
+    const response = await app.handle(
+      new Request("http://localhost:3000/api/users/current", {
+        method: "GET",
+      })
+    );
+
+    expect(response.status).toBe(401);
+    const data = (await response.json()) as Record<string, any>;
+    expect(data).toEqual({ error: "Unauthorized" });
+  });
+
+  it("GET /api/users/current returns error 401 when token is invalid", async () => {
+    const response = await app.handle(
+      new Request("http://localhost:3000/api/users/current", {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer invalid-uuid-token",
+        },
+      })
+    );
+
+    expect(response.status).toBe(401);
+    const data = (await response.json()) as Record<string, any>;
+    expect(data).toEqual({ error: "Unauthorized" });
   });
 });
