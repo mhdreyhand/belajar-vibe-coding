@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "../db";
 import { users } from "../db/schema/users";
+import { sessions } from "../db/schema/sessions";
 
 export type RegisterUserInput = {
   name: string;
@@ -8,13 +9,25 @@ export type RegisterUserInput = {
   password: string;
 };
 
-export class UserRegistrationError extends Error {
+export type LoginUserInput = {
+  email: string;
+  password: string;
+};
+
+export class AuthError extends Error {
   status: number;
 
   constructor(message: string, status = 400) {
     super(message);
-    this.name = "UserRegistrationError";
+    this.name = "AuthError";
     this.status = status;
+  }
+}
+
+export class UserRegistrationError extends AuthError {
+  constructor(message: string, status = 400) {
+    super(message, status);
+    this.name = "UserRegistrationError";
   }
 }
 
@@ -57,5 +70,39 @@ export const usersService = {
     }
 
     return { data: "OK" };
+  },
+
+  async loginUser(input: LoginUserInput) {
+    // 1. Cari user berdasarkan email
+    const [user] = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        password: users.password,
+      })
+      .from(users)
+      .where(eq(users.email, input.email))
+      .limit(1);
+
+    if (!user) {
+      throw new AuthError("Email atau password salah", 400);
+    }
+
+    // 2. Verifikasi password dengan hash bcrypt
+    const isPasswordValid = await Bun.password.verify(input.password, user.password);
+    if (!isPasswordValid) {
+      throw new AuthError("Email atau password salah", 400);
+    }
+
+    // 3. Generate token UUID
+    const token = crypto.randomUUID();
+
+    // 4. Simpan sesi login ke tabel sessions
+    await db.insert(sessions).values({
+      token,
+      userId: user.id,
+    });
+
+    return { data: token };
   },
 };

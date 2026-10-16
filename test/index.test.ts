@@ -1,7 +1,7 @@
 import { describe, expect, it, afterAll } from "bun:test";
 import { app } from "../src/index";
 import { db, pool } from "../src/db";
-import { users } from "../src/db/schema";
+import { users, sessions } from "../src/db/schema";
 import { eq } from "drizzle-orm";
 
 describe("Elysia App API", () => {
@@ -82,5 +82,71 @@ describe("Elysia App API", () => {
     expect(response.status).toBe(400);
     const data = (await response.json()) as Record<string, any>;
     expect(data).toEqual({ error: "Email sudah terdaftar" });
+  });
+
+  it("POST /api/users/login logs in successfully with valid credentials", async () => {
+    const response = await app.handle(
+      new Request("http://localhost:3000/api/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: testEmail,
+          password: "rahasia",
+        }),
+      })
+    );
+
+    expect(response.status).toBe(200);
+    const data = (await response.json()) as Record<string, any>;
+    expect(typeof data.data).toBe("string");
+
+    const token = data.data as string;
+    // Validasi token berformat UUID
+    expect(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token)
+    ).toBe(true);
+
+    // Verifikasi token tersimpan di tabel sessions
+    const [savedSession] = await db
+      .select()
+      .from(sessions)
+      .where(eq(sessions.token, token));
+
+    expect(savedSession).toBeDefined();
+    expect(savedSession!.token).toBe(token);
+  });
+
+  it("POST /api/users/login returns error when password is wrong", async () => {
+    const response = await app.handle(
+      new Request("http://localhost:3000/api/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: testEmail,
+          password: "passwordsalah",
+        }),
+      })
+    );
+
+    expect(response.status).toBe(400);
+    const data = (await response.json()) as Record<string, any>;
+    expect(data).toEqual({ error: "Email atau password salah" });
+  });
+
+  it("POST /api/users/login returns error when email is not registered", async () => {
+    const response = await app.handle(
+      new Request("http://localhost:3000/api/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: "tidakada@email.com",
+          password: "rahasia",
+        }),
+      })
+    );
+
+    expect(response.status).toBe(400);
+    const data = (await response.json()) as Record<string, any>;
+    expect(data).toEqual({ error: "Email atau password salah" });
   });
 });

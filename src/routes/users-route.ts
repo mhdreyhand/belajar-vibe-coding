@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import { usersService, UserRegistrationError } from "../services/users-service";
+import { usersService, AuthError } from "../services/users-service";
 
 export const usersRoute = new Elysia({ prefix: "/users" })
   .post(
@@ -10,7 +10,7 @@ export const usersRoute = new Elysia({ prefix: "/users" })
         set.status = 200;
         return result;
       } catch (error: any) {
-        if (error instanceof UserRegistrationError) {
+        if (error instanceof AuthError) {
           set.status = error.status;
           return { error: error.message };
         }
@@ -21,6 +21,29 @@ export const usersRoute = new Elysia({ prefix: "/users" })
     {
       body: t.Object({
         name: t.String({ minLength: 1 }),
+        email: t.String({ minLength: 1 }),
+        password: t.String({ minLength: 1 }),
+      }),
+    }
+  )
+  .post(
+    "/login",
+    async ({ body, set }) => {
+      try {
+        const result = await usersService.loginUser(body);
+        set.status = 200;
+        return result;
+      } catch (error: any) {
+        if (error instanceof AuthError) {
+          set.status = error.status;
+          return { error: error.message };
+        }
+        set.status = 500;
+        return { error: error?.message || "Terjadi kesalahan internal server" };
+      }
+    },
+    {
+      body: t.Object({
         email: t.String({ minLength: 1 }),
         password: t.String({ minLength: 1 }),
       }),
