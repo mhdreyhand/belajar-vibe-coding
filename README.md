@@ -23,9 +23,11 @@ Backend starter project yang dibangun menggunakan runtime Bun, framework ElysiaJ
 │   │   │   ├── index.ts
 │   │   │   └── users.ts
 │   │   └── index.ts      # Koneksi singleton client database MySQL
-│   ├── routes/           # Modul route Elysia
-│   │   ├── health.ts     # Health check & verifikasi koneksi DB
-│   │   └── users.ts      # Contoh route CRUD users
+│   ├── routes/           # Modul route Elysia (*-route.ts)
+│   │   ├── health-route.ts
+│   │   └── users-route.ts
+│   ├── services/         # Logic bisnis aplikasi (*-service.ts)
+│   │   └── users-service.ts
 │   └── index.ts          # Entry point server Elysia
 ├── test/
 │   └── index.test.ts     # Unit testing menggunakan Bun test runner
@@ -65,8 +67,27 @@ cp .env.example .env
 
 ---
 
-## 🔌 API Endpoints Dasar
+## 🔌 API Endpoints
 - `GET /`: Status umum server dan info welcome.
 - `GET /health`: Pemeriksaan kesehatan server dan konektivitas ke database MySQL.
-- `GET /users`: Mengambil daftar data users.
-- `POST /users`: Menambahkan user baru (body: `{ "name": "...", "email": "..." }`).
+- `POST /api/users`: Registrasi user baru dengan password yang di-hash bcrypt.
+  - **Body (JSON)**:
+    ```json
+    {
+      "name": "Reyhan",
+      "email": "reyhan@email.com",
+      "password": "rahasia"
+    }
+    ```
+  - **Response Success (200)**:
+    ```json
+    {
+      "data": "OK"
+    }
+    ```
+  - **Response Error (400)**:
+    ```json
+    {
+      "error": "Email sudah terdaftar"
+    }
+    ```
