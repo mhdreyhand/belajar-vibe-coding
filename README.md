@@ -1,0 +1,72 @@
+# Bun + ElysiaJS + Drizzle ORM + MySQL
+
+Backend starter project yang dibangun menggunakan runtime Bun, framework ElysiaJS, Drizzle ORM, dan MySQL database.
+
+---
+
+## 🛠️ Tech Stack
+- **Runtime**: [Bun](https://bun.sh/)
+- **Framework**: [ElysiaJS](https://elysiajs.com/)
+- **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
+- **Database Driver**: `mysql2`
+- **Migration & Tooling**: Drizzle Kit, TypeScript
+
+---
+
+## 📁 Struktur Proyek
+```text
+.
+├── drizzle/              # File migrasi SQL hasil generate Drizzle Kit
+├── src/
+│   ├── db/
+│   │   ├── schema/       # Definisi skema tabel database Drizzle
+│   │   │   ├── index.ts
+│   │   │   └── users.ts
+│   │   └── index.ts      # Koneksi singleton client database MySQL
+│   ├── routes/           # Modul route Elysia
+│   │   ├── health.ts     # Health check & verifikasi koneksi DB
+│   │   └── users.ts      # Contoh route CRUD users
+│   └── index.ts          # Entry point server Elysia
+├── test/
+│   └── index.test.ts     # Unit testing menggunakan Bun test runner
+├── .env.example          # Contoh variabel environment
+├── drizzle.config.ts     # Konfigurasi Drizzle Kit untuk MySQL
+├── package.json
+└── tsconfig.json
+```
+
+---
+
+## 🚀 Memulai
+
+### 1. Instalasi Dependensi
+```bash
+bun install
+```
+
+### 2. Konfigurasi Environment
+Salin file `.env.example` ke `.env` dan sesuaikan kredensial MySQL Anda:
+```bash
+cp .env.example .env
+```
+
+### 3. Skrip Perintah
+
+| Perintah | Deskripsi |
+| :--- | :--- |
+| `bun run dev` | Menjalankan server development dengan mode auto-reload/watch |
+| `bun run start` | Menjalankan server aplikasi |
+| `bun run test` | Menjalankan test suite menggunakan Bun test runner |
+| `bun run typecheck` | Menjalankan type checking dengan TypeScript compiler |
+| `bun run db:generate` | Membuat file migrasi SQL baru dari schema Drizzle |
+| `bun run db:push` | Mendorong perubahan skema langsung ke database MySQL |
+| `bun run db:migrate` | Menjalankan migrasi database yang tersimpan di folder `drizzle/` |
+| `bun run db:studio` | Membuka web UI Drizzle Studio untuk eksplorasi data |
+
+---
+
+## 🔌 API Endpoints Dasar
+- `GET /`: Status umum server dan info welcome.
+- `GET /health`: Pemeriksaan kesehatan server dan konektivitas ke database MySQL.
+- `GET /users`: Mengambil daftar data users.
+- `POST /users`: Menambahkan user baru (body: `{ "name": "...", "email": "..." }`).
